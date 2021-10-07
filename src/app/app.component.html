@@ -1,0 +1,32 @@
+<div class="w-100 d-flex flex-column flex-grow-1">
+  <div class="px-3">
+    <h1 class="mat-title">Todo List</h1>
+  </div>
+  <div class="d-flex flex-column align-items-stretch mx-3">
+    <div
+      class="section-header d-flex flex-sm-row align-items-center mat-elevation-z4 p-3"
+    >
+      <button mat-button (click)="showAddBankDialog()">
+        Add Todo
+      </button>
+      <ng-container *ngIf="selectedTodo">
+        <span class="separator"></span>
+        <button mat-button (click)="showEditDialog(selectedTodo)">
+          Edit
+        </button>
+        <button mat-button color="warn" (click)="showDeleteDialog(selectedTodo)">
+          Delete
+        </button>
+        <button mat-button color="warn" (click)="showDeleteDialog(null)">
+          Delete All
+        </button>
+      </ng-container>
+    </div>
+    <app-list
+    [todo]="todoFacade.allTodo$ | async"
+    (selectionChanged)="selectedTodo = $event"
+  ></app-list>
+
+    
+  </div>
+</div>

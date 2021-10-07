@@ -1,0 +1,10 @@
+{
+  "$schema": "@angular-devkit/architect/src/builders-schema.json",
+  "builders": {
+    "run-commands": {
+      "implementation": "./src/builders/run-commands/run-commands.impl",
+      "schema": "./src/builders/run-commands/schema.json",
+      "description": "Run any custom commands with Nx"
+    }
+  }
+}
