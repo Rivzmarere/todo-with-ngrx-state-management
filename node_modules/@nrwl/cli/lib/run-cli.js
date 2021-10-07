@@ -1,0 +1,76 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const fs = require("fs");
+const find_workspace_root_1 = require("./find-workspace-root");
+const workspace = find_workspace_root_1.findWorkspaceRoot(process.cwd());
+if (process.env.NX_TERMINAL_OUTPUT_PATH) {
+    setUpOutputWatching(process.env.NX_TERMINAL_CAPTURE_STDERR === 'true', process.env.NX_FORWARD_OUTPUT === 'true');
+}
+requireCli();
+function requireCli() {
+    process.env.NX_CLI_SET = 'true';
+    let cliPath;
+    if (workspace.type === 'nx') {
+        cliPath = '@nrwl/tao/index.js';
+    }
+    else {
+        cliPath = '@angular/cli/lib/init.js';
+    }
+    try {
+        const cli = require.resolve(cliPath, {
+            paths: [workspace.dir],
+        });
+        require(cli);
+    }
+    catch (e) {
+        console.error(`Could not find ${cliPath} module in this workspace.`, e);
+        process.exit(1);
+    }
+}
+/**
+ * We need to collect all stdout and stderr and store it, so the caching mechanism
+ * could store it.
+ *
+ * Writing stdout and stderr into different stream is too risky when using TTY.
+ *
+ * So we are simply monkey-patching the Javascript object. In this case the actual output will always be correct.
+ * And the cached output should be correct unless the CLI bypasses process.stdout or console.log and uses some
+ * C-binary to write to stdout.
+ */
+function setUpOutputWatching(captureStderr, forwardOutput) {
+    const stdoutWrite = process.stdout._write;
+    const stderrWrite = process.stderr._write;
+    let out = [];
+    let outWithErr = [];
+    process.stdout._write = (chunk, encoding, callback) => {
+        out.push(chunk.toString());
+        outWithErr.push(chunk.toString());
+        if (forwardOutput) {
+            stdoutWrite.apply(process.stdout, [chunk, encoding, callback]);
+        }
+        else {
+            callback();
+        }
+    };
+    process.stderr._write = (chunk, encoding, callback) => {
+        outWithErr.push(chunk.toString());
+        if (forwardOutput) {
+            stderrWrite.apply(process.stderr, [chunk, encoding, callback]);
+        }
+        else {
+            callback();
+        }
+    };
+    process.on('exit', (code) => {
+        if (code === 0) {
+            fs.writeFileSync(process.env.NX_TERMINAL_OUTPUT_PATH, captureStderr ? outWithErr.join('') : out.join(''));
+        }
+        else {
+            fs.writeFileSync(process.env.NX_TERMINAL_OUTPUT_PATH, outWithErr.join(''));
+        }
+    });
+    process.on('SIGTERM', () => {
+        process.exit(15);
+    });
+}
+//# sourceMappingURL=run-cli.js.map

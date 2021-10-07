@@ -1,0 +1,19 @@
+<h2 mat-dialog-title class="text-center">Delete Todo Item</h2>
+<mat-dialog-content>
+  <div class="w-100 text-center mb-3">
+    <h1 class="mat-headline">
+      <mat-icon class="question-icon">help</mat-icon>
+    </h1>
+    <h3>Are you sure you want to delete all?</h3>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <div class="w-100 text-center mb-2">
+    <button mat-dialog-close mat-raised-button class="px-4">
+      Cancel
+    </button>
+    <button mat-raised-button color="warn" class="px-4" (click)="confirm()">
+      Delete
+    </button>
+  </div>
+</mat-dialog-actions>
